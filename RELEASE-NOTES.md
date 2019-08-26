@@ -28,7 +28,16 @@
 
 ## com.didi.virtualapk:core:0.9.5
 1. 修复多个bug，强烈建议升级至此版本，以前版本不再维护。
-2. 与 com.didi.virtualapk:gradle:0.9.8.2 搭配使用，支持官方 Data Binding。
+2. 与 com.didi.virtualapk:gradle:0.9.8.2及以上版本 搭配使用，支持官方 Data Binding。
+
+## com.didi.virtualapk:core:0.9.6
+1. 修复部分空指针问题。
+
+## com.didi.virtualapk:core:0.9.6
+1. 代码重构。
+2. 修复部分空指针bug。
+3. 适配Android P。
+4. 修复webview初始化后插件资源不可用的bug。
 
 ## VirtualAPK 的构建部分已经开源了，![点击这里查看](https://github.com/didi/VirtualAPK/tree/master/virtualapk-gradle-plugin)
 
@@ -39,3 +48,12 @@
 
 ## com.didi.virtualapk:gradle:0.9.8.3
 1. 兼容不定义 productFlavors 的配置。
+
+## com.didi.virtualapk:gradle:0.9.8.4
+1. 修复当插件依赖library module时构建失败的bug。
+2. 修复依赖本地aar时构建失败的bug。
+3. 修复当插件自定义attr属性时id错误的bug。
+
+## com.didi.virtualapk:gradle:0.9.8.6
+1. 适配com.android.tools.build:gradle:3.1.0。
+2. 修复当插件未定义attr资源时anim资源找不到的bug。

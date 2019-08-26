@@ -19,6 +19,7 @@ class ResourceCollector {
 
     private Project project
     private VAExtention virtualApk
+    private VAExtention.VAContext vaContext
 
     /**
      * Gradle task of process resource in Android build system
@@ -56,11 +57,12 @@ class ResourceCollector {
 
         this.project = project
         virtualApk = project.virtualApk
+        vaContext = virtualApk.getVaContext(par.variantName)
 
         processResTask = par
 
         allRSymbolFile = par.textSymbolOutputFile
-        hostRSymbolFile = virtualApk.hostSymbolFile
+        hostRSymbolFile = vaContext.hostSymbolFile
     }
 
     /**
@@ -83,7 +85,7 @@ class ResourceCollector {
         reassignPluginResourceId()
 
         //5、Collect all the resources in the retained AARs, to regenerate the R java file that uses the new resource ID
-        virtualApk.retainedAarLibs.each {
+        vaContext.retainedAarLibs.each {
             gatherReservedAarResources(it)
         }
     }
@@ -161,19 +163,27 @@ class ResourceCollector {
      * Set the packageId specified in the build.gradle file, and reassign type&entry ID
      */
     private void reassignPluginResourceId() {
-        //The value of aar type should be 1
-        def attrTypeId = 1
-        //Other types  are allocated from 2
-        def lastTypeId = 2
+
+        def resourceIdList = []
         pluginResources.keySet().each { String resType ->
+            List<ResourceEntry> entryList = pluginResources.get(resType)
+            resourceIdList.add([resType: resType, typeId: entryList.empty ? -100 : parseTypeIdFromResId(entryList.first().resourceId)])
+        }
+
+
+        resourceIdList.sort { t1, t2 ->
+            t1.typeId - t2.typeId
+        }
+
+        int lastType = 1
+        resourceIdList.each {
+            if (it.typeId < 0) {
+                return
+            }
             def typeId = 0
             def entryId = 0
-            if (resType == 'attr') {
-                typeId = attrTypeId
-            } else {
-                typeId = lastTypeId++
-            }
-            pluginResources.get(resType).each {
+            typeId = lastType++
+            pluginResources.get(it.resType).each {
                 it.setNewResourceId(virtualApk.packageId, typeId, entryId++)
             }
         }
@@ -190,6 +200,13 @@ class ResourceCollector {
             }
             styleableEntry.value = values
         }
+    }
+
+    /**
+     * Parse the type part of a android resource id
+     */
+    def parseTypeIdFromResId(int resourceId) {
+        resourceId >> 16 & 0xFF
     }
 
     /**
@@ -263,7 +280,7 @@ class ResourceCollector {
         }
 
         vendorTypeFile.withPrintWriter { pw ->
-            virtualApk.retainedAarLibs.each { aarLib ->
+            vaContext.retainedAarLibs.each { aarLib ->
                 pw.println "${aarLib.name}"
 
                 aarLib.aarResources.values().each {
